@@ -1,311 +1,232 @@
 package ssa;
 
-import java.util.Random;
-import java.util.Scanner;
-import java.util.logging.Logger;
-
 public class Algorithm {
 
-    private static final Logger LOG = Logger.getLogger(Algorithm.class.getName());
-
-    public Integer[][] inputData(Scanner input, Integer facility, Integer location) {
-        System.out.println("\n===================INPUT DATA===================\n");
-        Integer[][] inputData = new Integer[facility][location];
-        for (Integer i = 0; i < facility; i++) {
-            for (Integer j = 0; j < location; j++) {
-                System.out.print("Input Data : ");
-                inputData[i][j] = Integer.parseInt(input.nextLine()); //masukkan data inputan
-//                inputData[i][j] = randomInteger(1, 9); //masukkan data inputan
-            }
-        }
-
-        //bentuk matriksnya
-        for (Integer i = 0; i < facility; i++) {
-            for (Integer j = 0; j < location; j++) {
-                System.out.print(inputData[i][j] + " ");
-            }
-            System.out.println();
-        }
-        System.out.println("\n===================INPUT DATA===================\n");
-        return inputData;
-    }
-
-    private Integer randomInteger(Integer min, Integer max) {
-        return new Random().nextInt(max - min + 1) + min;
-    }
-
     //membangkitkan populasi squirrel terbang awal
-    public Double[][] population(Integer n, Integer facility, Integer fsu, Integer fsl) {
-        System.out.println("\n===================PUPULATION===================\n");
-        Double[][] squirrel = new Double[n][facility];
-        for (Integer i = 0; i < n; i++) {
-            for (Integer j = 0; j < facility; j++) {
-                squirrel[i][j] = (fsl + (Math.random() * ((fsu - fsl))));
-            }
-        }
+    public void population(Integer N, Integer D, Integer fsu, Integer fsl) {
+        Double iterasi[] = new Double[Param.MAX_ITER];
+        for (int iter = 0; iter < Param.MAX_ITER; iter++) {
+            System.out.println("\n===================INISIALISASI POPULASI===================\n");
+            Double[][] squirrel = new Double[N][D];
+            Double[][] squirrel1 = new Double[N][D];
 
-        for (Integer i = 0; i < n; i++) {
-            for (Integer j = 0; j < facility; j++) {
-                System.out.print(squirrel[i][j] + " ");
-            }
-            System.out.println();
-        }
-        System.out.println("\n===================PUPULATION===================\n");
-        return squirrel;
-    }
-
-    //pengurutan squirrel
-    public Integer[][] order(Integer n, Integer facility, Double[][] squirrel) {
-        System.out.println("\n===================ORDER===================\n");
-        Integer[][] order = new Integer[n][facility];
-        for (Integer i = 0; i < n; i++) {
-            for (Integer j = 0; j < facility; j++) {
-                Integer k = 1;
-                for (Integer m = 0; m < facility; m++) {
-                    if (squirrel[i][j] > squirrel[i][m]) {
-                        k += 1;
-                    }
+            for (int i = 0; i < N; i++) {
+                for (int j = 0; j < D; j++) {
+                    squirrel[i][j] = (fsl + (Math.random() * ((fsu - fsl))));
                 }
-                order[i][j] = k;
             }
-        }
 
-        for (Integer i = 0; i < n; i++) {
-            for (Integer j = 0; j < facility; j++) {
-                System.out.print(order[i][j] + " ");
+            for (Integer i = 0; i < N; i++) {
+                for (Integer j = 0; j < D; j++) {
+                    System.out.print(squirrel[i][j] + " ");
+                }
+                System.out.println();
             }
-            System.out.println();
-        }
-        System.out.println("\n===================ORDER===================\n");
-        return order;
-    }
+            System.out.println("\n===================INISIALISASI POPULASI===================\n");
 
-    //menentukan matriks penempatan
-    public Integer[][] facility(Integer n, Integer facility, Integer[][] order) {
-        System.out.println("\n===================FACILITY===================\n");
-        Integer[][] x = new Integer[n][facility];
-        for (Integer i = 0; i < n; i++) {
-            for (Integer j = 0; j < facility; j++) {
-                for (Integer k = 0; k < facility; k++) {
-                    if (order[i][k].equals(j)) {
-                        x[j][k] = 1;
+            System.out.println("\n===================PANGKAT===================\n");
+
+            for (int i = 0; i < N; i++) {
+                for (int j = 0; j < D; j++) {
+                    squirrel1[i][j] = Math.pow(squirrel[i][j], 2);
+                }
+            }
+
+            for (Integer i = 0; i < N; i++) {
+                for (Integer j = 0; j < D; j++) {
+                    System.out.print(squirrel1[i][j] + " ");
+                }
+                System.out.println();
+            }
+            System.out.println("\n===================PANGKAT===================\n");
+
+            System.out.println("\n===================CALCULATE FITNESS===================\n");
+            Double sum[][] = new Double[2][N];
+            for (int i = 0; i < N; i++) {
+                sum[0][i] = Double.valueOf(i + 1);
+                sum[1][i] = 0.0;
+                for (int j = 0; j < D; j++) {
+                    sum[1][i] += squirrel1[i][j];
+                }
+                System.out.println("fitness FS " + sum[0][i].intValue() + " adalah: " + sum[1][i]);
+            }
+            System.out.println("\n===================CALCULATE FITNESS===================\n");
+
+            System.out.println("\n===================ORDER===================\n");
+
+            sort(sum, N);
+            String tree;
+            for (int i = 0; i < N; i++) {
+                if (i == 0) {
+                    tree = "Hickory Nut Tree";
+                } else if (i >= 1 && i <= 3) {
+                    tree = "Acorn  Nut Tree";
+                } else {
+                    tree = "Normal Tree";
+                }
+                System.out.println("fitness FS " + sum[0][i].intValue() + " adalah: " + sum[1][i] + " " + tree);
+            }
+            System.out.println("\n===================ORDER===================\n");
+
+            System.out.println("\n===================MODIFIKASI TUPAI TERBANG===================\n");
+
+            Double newsquirrel[][] = new Double[N][D];
+
+            for (Integer i = 0; i < N; i++) {
+                for (Integer j = 0; j < D; j++) {
+                    newsquirrel[i][j] = squirrel[sum[0][i].intValue() - 1][j];
+                }
+            }
+
+//        for (Integer i = 0; i < 1; i++) {
+//            for (Integer j = 0; j < D; j++) {
+//                System.out.print(squirrel[sum[0][i].intValue() - 1][j] + " ");
+//            }
+//            System.out.println();
+//        }
+            for (Integer i = 0; i < 1; i++) {
+                for (Integer j = 0; j < D; j++) {
+                    System.out.print(newsquirrel[i][j] + " ");
+                }
+                System.out.println();
+            }
+
+//        for (Integer i = 1; i < 4; i++) {
+//            for (Integer j = 0; j < D; j++) {
+//                System.out.print(squirrel[sum[0][0].intValue() - 1][j] + Param.DG * Param.GC * (squirrel[sum[0][i].intValue() - 1][j] - squirrel[sum[0][0].intValue() - 1][j]) + " ");
+//            }
+//            System.out.println();
+//        }
+            for (Integer i = 1; i < 4; i++) {
+                for (Integer j = 0; j < D; j++) {
+                    System.out.print(newsquirrel[0][j] + Param.DG * Param.GC * (newsquirrel[i][j] - newsquirrel[0][j]) + " ");
+                }
+                System.out.println();
+            }
+
+//        for (Integer i = 3; i < N; i++) {
+//            for (Integer j = 0; j < D; j++) {
+//                System.out.print(squirrel[sum[0][0].intValue() - 1][j] + Param.DG * Param.GC * (squirrel[sum[0][i].intValue() - 1][j] - squirrel[sum[0][0].intValue() - 1][j]) + " ");
+//            }
+//            System.out.println();
+//        }
+            for (Integer i = 3; i < N; i++) {
+                for (Integer j = 0; j < D; j++) {
+                    Double k = Math.random();
+                    if (k <= 0.5) {
+                        System.out.print(newsquirrel[0][j] + Param.DG * Param.GC * (squirrel[2][j] - squirrel[i][j]) + " ");
                     } else {
-                        x[j][k] = 0;
+                        System.out.print(newsquirrel[0][j] + Param.DG * Param.GC * (squirrel[1][j] - squirrel[j][j]) + " ");
                     }
                 }
+                System.out.println();
             }
-        }
 
-        for (Integer i = 0; i < n; i++) {
-            for (Integer j = 0; j < facility; j++) {
-                System.out.print(x[i][j] + " ");
-            }
-            System.out.println();
-        }
-        System.out.println("\n===================FACILITY===================\n");
-        return x;
-    }
+            System.out.println("\n===================MODIFIKASI TUPAI TERBANG===================\n");
 
-    //menghitung nilai fungsi tujuan(nilai fitness)
-    public Double[] calculationFitness(Integer n, Integer facility, Integer frekuansi1[][], Integer frekuansi2[][], Integer distance[][], Integer x[][]) {
-        System.out.println("\n===================CALCULATION FITNESS===================\n");
-        Double[] fitness = new Double[n];
-        for (Integer i = 0; i < n; i++) {
-            fitness[i] = 0.0; //nilaifitness
-            for (Integer j = 0; j < facility; j++) {
-                for (Integer k = 0; k < facility; k++) {
-                    for (Integer l = 0; l < facility; l++) {
-                        for (Integer m = 0; m < facility; m++) {
-                            fitness[i] = (fitness[i]
-                                    + (0.5 * frekuansi1[j][l] * distance[k][m] * x[j][k] * x[l][m])
-                                    + 0.5
-                                    * (frekuansi2[j][l] * distance[k][m] * x[j][k] * x[l][m]));
-                        }
-                    }
-                }
-            }
-        }
-        for (Integer i = 0; i < n; i++) {
-            for (Integer j = 0; j < facility; j++) {
-                System.out.print(x[i][j] + " ");
-            }
-            System.out.println();
-        }
-        System.out.println("\n===================CALCULATION FITNESS===================\n");
-        return fitness;
-    }
-
-    //menentukan facility.getLocation() masing-masing squirrel terbang
-    public void location(Integer n, Integer fitness) {
-        System.out.println("\n===================LOCATION===================\n");
-        Integer[] accommodate2 = null;
-        for (Integer i = 0; i < n; i++) {
-            accommodate2[i] = i;
-        }
-        Integer[] accommodate = null;
-        for (Integer i = 0; i < n; i++) {
-            for (Integer j = 0; j < n - 1; j++) {
-                if (accommodate[j] > accommodate[j + 1]) {
-                    Integer temp = accommodate[j];
-                    accommodate[j] = accommodate[j + 1];
-                    accommodate[j + 1] = temp;
-
-                    Integer temp2 = accommodate2[j];
-                    accommodate2[j] = accommodate2[j + 1];
-                    accommodate2[j + 1] = temp2;
-                }
-            }
-        }
-        System.out.println("\n===================LOCATION===================\n");
-    }
-
-    //modifikasi facility.getLocation() squirrel terbang berada pada pohon acorn
-    public Double[][] newLocation(Integer n, Integer facility, Double squirrel[][], Double dg, Double gc, Double pdp) {
-        System.out.println("\n===================NEW LOCATION===================\n");
-        Double[][] newSquirrel = new Double[n][facility];
-        for (Integer i = 0; i < n; i++) {
-            for (Integer j = 0; j < facility; j++) {
-                if (i >= 2 && i <= 4) {
-                    Double r1 = Math.random();
-                    if (r1 >= pdp) {
-//                        newSquirrel[i][j] = dg * gc * (squirrel[1][j] - squirrel[i][j]); // rumus asli tapi error
-                        newSquirrel[i][j] = dg * gc * (squirrel[1][j] - squirrel[i][j]);
-                    } else {
-                        newSquirrel[i][j] = Math.random();
-                    }
-                }
-            }
-        }
-
-        for (Integer i = 0; i < n; i++) {
-            for (Integer j = 0; j < facility; j++) {
-                System.out.print(newSquirrel[i][j] + " ");
-            }
-            System.out.println();
-        }
-        System.out.println("\n===================NEW LOCATION===================\n");
-        return newSquirrel;
-    }
-
-    //modifikasi facility.getLocation() squirrel terbang berada pada pohon normal
-    public Double[][] normalTree(Integer n, Integer facility, Double squirrel[][], Double dg, Double gc, Double pdp) {
-        System.out.println("\n===================NORMAL TREE===================\n");
-        Double[][] newSquirrel = new Double[n][facility];
-        for (Integer i = 0; i < n; i++) {
-            for (Integer j = 0; j < facility; j++) {
-                Double k = Math.random();
-                if (k <= 0.5) {
-                    Double R2 = Math.random();
-                    if (R2 >= pdp) {
-//                        newSquirrel[i][j] += dg * gc * (squirrel[2][j] - squirrel[i][j]);
-                        newSquirrel[i][j] = dg * gc * (squirrel[2][j] - squirrel[i][j]);
-                    } else {
-                        newSquirrel[i][j] = Math.random();
-                    }
-                }
-                if (k > 0.5) {
-                    Double R3 = Math.random();
-                    if (R3 >= pdp) {
-//                        newSquirrel[i][j] += dg * gc * (squirrel[1][j] - squirrel[i][j]);
-                        newSquirrel[i][j] = dg * gc * (squirrel[1][j] - squirrel[i][j]);
-                    } else {
-                        newSquirrel[i][j] = Math.random();
-                    }
-                }
-            }
-        }
-
-        for (Integer i = 0; i < n; i++) {
-            for (Integer j = 0; j < facility; j++) {
-                System.out.print(newSquirrel[i][j] + " ");
-            }
-            System.out.println();
-        }
-        System.out.println("\n===================NORMAL TREE===================\n");
-        return newSquirrel;
-    }
-
-    //menghitung dan update nilai konstanta musim dan konstanta musim minimum
-    public Double[] calculationUpdateCons(Integer facility, Double newSquirrel[][], Integer maxIter) {
-        System.out.println("\n===================CALCULATION UPDATE CONSTANTA===================\n");
-        Double[] season = new Double[2];
-        Integer iterasi = 0;
-        Integer a = -6;
-        Double b = maxIter / 2.5;
-        if (iterasi <= 3) {
+            System.out.println("\n===================CALCULATION UPDATE CONSTANTA===================\n");
+            Double[] season = new Double[2];
+//            Integer iterasi = 0;
+            Integer a = -6;
+            Double b = Param.MAX_ITER / 2.5;
+//            if (iterasi <= 3) {
             Double sc1 = 0.0;
-            for (Integer i = 0; i < facility; i++) {
+            for (Integer i = 0; i < D; i++) {
                 for (Integer j = 0; j < i; j++) {
-                    sc1 += (Math.pow(newSquirrel[i][j] - newSquirrel[1][j], 2));
+                    sc1 += (Math.pow(newsquirrel[i][j] - newsquirrel[1][j], 2));
                 }
             }
             season[0] = Math.sqrt(sc1);
             //10e^-6/365^iterasi/max_iter/2.5
             season[1] = (Math.pow(Math.exp(10), a)) / (Math.pow(365, b));
-        }
-        
-        for (Double s : season) {
-            System.out.println(s + " ");
-        }
-        System.out.println("\n===================CALCULATION UPDATE CONSTANTA===================\n");
-        return season;
-    }
+//            }
 
-    //memperbarui facility.getLocation() squirrel terbang menggunakan levy flight
-    public Double[][] levy(Integer n, Integer facility, Double lb, Double[][] newSquirrel, Double[] season, Integer fsu, Integer fsl) {
-        System.out.println("\n===================LEVY===================\n");
-        Double[] u = new Double[facility];
-        Double[] v = new Double[facility];
-        Double[] s = new Double[facility];
-        Double[] l = new Double[facility];
+            for (Double s : season) {
+                System.out.println(s + " ");
+            }
+            System.out.println("\n===================CALCULATION UPDATE CONSTANTA===================\n");
+
+            System.out.println("\n===================LEVY===================\n");
+            Double[] u = new Double[D];
+            Double[] v = new Double[D];
+            Double[] s = new Double[D];
+            Double[] l = new Double[D];
 //        Double r = null;
-        for (Integer i = 0; i < n; i++) {
-            for (Integer j = 0; j < facility; j++) {
+            for (Integer i = 0; i < N; i++) {
+                for (Integer j = 0; j < D; j++) {
 
-                u[j] = Math.random();
-                v[j] = Math.random();
+                    u[j] = Math.random();
+                    v[j] = Math.random();
 
-                Double num = gamma(1.0 + lb) * Math.sin(Math.PI * lb / 2); //pembilang
-                Double den = gamma((1.0 + lb) / 2.0) * lb * Math.pow(2.0, ((lb - 1.0) / 2.0)); //penyebut
-                Double r = num / den;
+                    Double num = gamma(1.0 + Param.LAMBDA) * Math.sin(Math.PI * Param.LAMBDA / 2); //pembilang
+                    Double den = gamma((1.0 + Param.LAMBDA) / 2.0) * Param.LAMBDA * Math.pow(2.0, ((Param.LAMBDA - 1.0) / 2.0)); //penyebut
+                    Double r = num / den;
 
-                s[j] = u[j] / (Math.pow(Math.abs(v[j]), lb)); //U/|V|^1/2
-                l[j] = (lb * gamma(lb) * Math.sin(Math.PI * lb / 2) / Math.PI) * 1 / (Math.pow(s[j], 1 + lb)); //nilai levy
-                if (season[0] < season[1]) {
-                    newSquirrel[i][j] = fsl + l[j] * (fsu - fsl);
-                } else {
-                    newSquirrel[i][j] = newSquirrel[i][j];
+                    s[j] = u[j] / (Math.pow(Math.abs(v[j]), Param.LAMBDA)); //U/|V|^1/2
+                    l[j] = (Param.LAMBDA * gamma(Param.LAMBDA) * Math.sin(Math.PI * Param.LAMBDA / 2) / Math.PI) * 1 / (Math.pow(s[j], 1 + Param.LAMBDA)); //nilai levy
+                    if (season[0] < season[1]) {
+                        newsquirrel[i][j] = fsl + l[j] * (fsu - fsl);
+                    } else {
+                        newsquirrel[i][j] = newsquirrel[i][j];
+                    }
                 }
             }
+
+            for (Integer i = 0; i < N; i++) {
+                for (Integer j = 0; j < D; j++) {
+                    System.out.print(newsquirrel[i][j] + " ");
+                }
+                System.out.println();
+            }
+            System.out.println("\n===================LEVY===================\n");
+
+            System.out.println("\n===================UPDATE FS===================\n");
+            for (Integer i = 0; i < N; i++) {
+                for (Integer j = 0; j < D; j++) {
+                    squirrel[i][j] = newsquirrel[i][j];
+                }
+            }
+
+            for (Integer i = 0; i < N; i++) {
+                for (Integer j = 0; j < D; j++) {
+                    System.out.print(squirrel[i][j] + " ");
+                }
+                System.out.println();
+            }
+            System.out.println("\n===================UPDATE FS===================\n");
+
+            System.out.println("\n===================NILAI FITNESS===================\n");
+
+            
+            for (int i = 0; i <= iter; i++) {
+                iterasi[iter] = sum[1][i];
+            }
+            for (int i = 0; i <= iter; i++) {
+                System.out.println(iterasi[i] + " ");
+            }
+
+            System.out.println("\n===================NILAI FITNESS===================\n");
         }
 
-        for (Integer i = 0; i < n; i++) {
-            for (Integer j = 0; j < facility; j++) {
-                System.out.print(newSquirrel[i][j] + " ");
-            }
-            System.out.println();
-        }
-        System.out.println("\n===================LEVY===================\n");
-        return newSquirrel;
     }
 
-    //update squirrel terbang
-    public Double[][] updateFS(Integer n, Integer facility, Double newSquirrel[][], Double squirrel[][]) {
-        System.out.println("\n===================UPDATE FS===================\n");
-        for (Integer i = 0; i < n; i++) {
-            for (Integer j = 0; j < facility; j++) {
-                squirrel[i][j] = newSquirrel[i][j];
+    private void sort(Double[][] sum, Integer N) {
+        int n = N;
+        for (int i = 0; i < n - 1; i++) {
+            int min_idx = i;
+            for (int j = i + 1; j < n; j++) {
+                if (sum[1][j] < sum[1][min_idx]) {
+                    min_idx = j;
+                }
             }
-        }
 
-        for (Integer i = 0; i < n; i++) {
-            for (Integer j = 0; j < facility; j++) {
-                System.out.print(squirrel[i][j] + " ");
-            }
-            System.out.println();
+            Double temp0 = sum[0][min_idx];
+            sum[0][min_idx] = sum[0][i];
+            sum[0][i] = temp0;
+            Double temp1 = sum[1][min_idx];
+            sum[1][min_idx] = sum[1][i];
+            sum[1][i] = temp1;
         }
-        System.out.println("\n===================UPDATE FS===================\n");
-        return squirrel;
     }
 
     private Double logGamma(Double x) {
@@ -319,35 +240,5 @@ public class Algorithm {
     private Double gamma(Double x) {
         return Math.exp(logGamma(x));
     }
-
-    private Double[][] randi(Integer iMax, Integer n) {
-        Double[][] randi = new Double[n][n];
-        for (Integer i = 0; i < n; i++) {
-            for (Integer j = 0; j < n; j++) {
-                randi[i][j] = (double) randomInteger(1, iMax);
-                System.out.print(randi[i][j] + ", ");
-            }
-            System.out.println();
-        }
-        return randi;
-    }
-
-    private Double[][] randn(Integer n, Integer m) {
-        Double[][] numArray = new Double[n][m];
-        for (int i = 0; i < n; i++) {
-            for (int j = 0; j < m; j++) {
-                numArray[i][j] = Math.random();
-                System.out.print(numArray[i][j] + ", ");
-            }
-            System.out.println();
-        }
-        return numArray;
-    }
-
-//    public static void main(String[] args) {
-//        Algorithm a = new Algorithm();
-//        a.randn(3, 3);
-//        a.randi(3, 3);
-//    }
 
 }

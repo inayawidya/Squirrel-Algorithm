@@ -15,15 +15,15 @@ public class QuadraticAssignmentProblem {
 
     private static final Logger LOG = Logger.getLogger(QuadraticAssignmentProblem.class.getName());
 
-    private Integer facility;
+    private Integer D;
     private Integer location;
 
-    public Integer getFacility() {
-        return facility;
+    public Integer getDim() {
+        return D;
     }
 
-    public void setFacility(Integer facility) {
-        this.facility = facility;
+    public void setDim(Integer D) {
+        this.D = D;
     }
 
     public Integer getLocation() {
@@ -36,6 +36,6 @@ public class QuadraticAssignmentProblem {
 
     @Override
     public String toString() {
-        return "QuadraticAssignmentProblem{" + "facility=" + facility + ", location=" + location + '}';
+        return "QuadraticAssignmentProblem{" + "facility=" + D + ", location=" + location + '}';
     }
 }
